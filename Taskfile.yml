@@ -1,0 +1,26 @@
+version: 3
+
+silent: true
+
+vars:
+  SERVICE_FUNCTION_NAME: "reminder"
+
+tasks:
+  _zip:
+    dir: dist/
+    cmds:
+      - zip index.zip index.js > /dev/null
+  build:
+    cmds:
+      - mkdir -p dist/
+      - yarn build
+      - task _zip
+  deploy:
+    dir: dist/
+    vars:
+      LOG_NAME:
+        sh: date --rfc-3339='seconds' | sed 's/\s/\_/' | sed 's/+/\_/' | sed 's/\:/-/g'
+    cmds:
+      - task build
+      - mkdir -p ../log/
+      - "aws lambda update-function-code --function-name {{ .SERVICE_FUNCTION_NAME }} --zip-file fileb://index.zip > ../log/{{ .LOG_NAME }}.json"
