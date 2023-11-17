@@ -53,7 +53,7 @@ class LinePack {
 
 	toReminderPack = (): Result<ReminderPack> => {
 		const messageArr = this.message.split(" ");
-		const _notificationTime = messageArr[0];
+		const _notificationTime = messageArr[0].trim();
 		const _message = messageArr.slice(1).join(" ");
 
 		const notificationTimeResult = parseNotificationTime(_notificationTime);
