@@ -2,8 +2,8 @@ import {
 	MessageEvent,
 	TextEventMessage,
 	WebhookEvent,
-	validateSignature,
 	messagingApi,
+	validateSignature,
 } from "@line/bot-sdk";
 import { APIGatewayEvent } from "aws-lambda";
 import { ReminderPack } from "./reminder";

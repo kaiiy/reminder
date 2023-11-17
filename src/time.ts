@@ -1,5 +1,5 @@
-import { FailureResult, Result, SuccessResult } from "./result";
 import dayjs from "dayjs";
+import { FailureResult, Result, SuccessResult } from "./result";
 
 const parseNumber = (str: string) => {
 	const number = parseInt(str);
