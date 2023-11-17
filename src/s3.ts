@@ -26,7 +26,6 @@ export class S3GW {
 				}),
 			)
 			.catch((err) => {
-				console.error(err);
 				if (err instanceof Error) return err;
 				return new Error("Failed to get pack from S3.");
 			});
@@ -36,15 +35,15 @@ export class S3GW {
 			return new FailureResult(new Error("S3 response body is undefined."));
 		}
 
+		let errBuff: Error | undefined = undefined;
 		const buffStr = await buff.Body.transformToString().catch((err) => {
-			console.error(err);
+			errBuff = err;
 			return "";
 		});
+		if (errBuff !== undefined) return new FailureResult(errBuff);
 		const parsedResult = remindersSchema.safeParse(JSON.parse(buffStr));
-		if (!parsedResult.success) {
-			console.error(parsedResult.error);
-			return new FailureResult(parsedResult.error);
-		}
+		if (!parsedResult.success) return new FailureResult(parsedResult.error);
+
 		const reminders: Reminder[] = parsedResult.data;
 		const packs: ReminderPack[] = reminders.map((reminder) => {
 			return new ReminderPack({
@@ -58,7 +57,7 @@ export class S3GW {
 		return new SuccessResult(packs);
 	};
 
-	postPacks = async (packs: ReminderPack[]): Promise<boolean> => {
+	postPacks = async (packs: ReminderPack[]): Promise<Result<null>> => {
 		const Reminders: Reminder[] = packs.map((pack) => pack.toObject());
 		const remindersStr = JSON.stringify(Reminders);
 		const response = await this.client
@@ -73,7 +72,7 @@ export class S3GW {
 				if (err instanceof Error) return err;
 				return new Error("Failed to update states to S3");
 			});
-		if (response instanceof Error) return false;
-		return true;
+		if (response instanceof Error) return new FailureResult(response);
+		return new SuccessResult(null);
 	};
 }

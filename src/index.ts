@@ -29,8 +29,9 @@ export const handler = async (
 	const s3GW = new S3GW("ap-northeast-1", BUCKET_NAME, "db.json");
 
 	// Authenticate GWs
-	if (!lineGW.authenticate(event)) {
-		console.error("Failed to authenticate.");
+	const authResult = lineGW.authenticate(event);
+	if (!authResult.success) {
+		console.error(authResult.error);
 		return forbiddenResponse;
 	}
 
@@ -62,19 +63,16 @@ export const handler = async (
 	const reminderPacks = [...currReminderPacks, ...newReminderPacks];
 
 	// Post reminder packs
-	const isSuccessToPostReminderPacks = await s3GW.postPacks(reminderPacks);
-	if (!isSuccessToPostReminderPacks) {
-		console.error("Failed to post reminder packs.");
-	}
+	const postReminderPacksResult = await s3GW.postPacks(reminderPacks);
+	if (!postReminderPacksResult.success)
+		console.error(postReminderPacksResult.error);
 
 	// Post line packs
 	const replyLinePackResults = newReminderPacks.map((newReminderPack) =>
 		newReminderPack.toLinePack(),
 	);
-	const isSuccessToPostLinePacks = await lineGW.postPacks(replyLinePackResults);
-	if (!isSuccessToPostLinePacks) {
-		console.error("Failed to post line packs.");
-	}
+	const postLinePacksResult = await lineGW.postPacks(replyLinePackResults);
+	if (!postLinePacksResult.success) console.error(postLinePacksResult.error);
 
 	return OkResponse;
 };

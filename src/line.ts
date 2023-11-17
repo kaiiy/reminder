@@ -57,10 +57,8 @@ class LinePack {
 		const _message = messageArr.slice(1).join(" ");
 
 		const notificationTimeResult = parseNotificationTime(_notificationTime);
-		if (!notificationTimeResult.success) {
-			console.error(notificationTimeResult.error);
-			return new FailureResult(new Error("Failed to parse notification time."));
-		}
+		if (!notificationTimeResult.success)
+			return new FailureResult(notificationTimeResult.error);
 
 		return new SuccessResult(
 			new ReminderPack({
@@ -84,37 +82,38 @@ class LineGW {
 		});
 	}
 
-	authenticate = (event: APIGatewayEvent): boolean => {
-		if (event.body === null) {
-			console.error("Missing request body.");
-			return false;
-		}
+	authenticate = (event: APIGatewayEvent): Result<null> => {
+		if (event.body === null)
+			return new FailureResult(new Error("Missing request body."));
 
 		const signature = event.headers["x-line-signature"];
-		if (signature === undefined) {
-			console.error("Missing request signature.");
-			return false;
-		}
+		if (signature === undefined)
+			return new FailureResult(new Error("Missing request signature."));
 
 		const verified = validateSignature(
 			event.body,
 			this.channelSecret,
 			signature,
 		);
-		return verified;
+		if (!verified)
+			return new FailureResult(new Error("Invalid request signature."));
+		return new SuccessResult(null);
 	};
 
 	getPacks = (event: APIGatewayEvent): Result<LinePack[]> => {
-		if (event.body === null) {
-			console.error("Missing request body.");
+		if (event.body === null)
 			return new FailureResult(new Error("Missing request body."));
-		}
 
-		const lineEvents = JSON.parse(event.body).events;
-		if (!isWebhookEvents(lineEvents)) {
-			console.error("Invalid request body.");
+		let errBuff: Error | undefined = undefined;
+		const buff = JSON.parse(event.body).catch((err: unknown) => {
+			if (err instanceof Error) errBuff = err;
+			errBuff = new Error("Failed to parse request body.");
+		});
+		if (errBuff !== undefined) return new FailureResult(errBuff);
+
+		const lineEvents = buff.events;
+		if (!isWebhookEvents(lineEvents))
 			return new FailureResult(new Error("Invalid request body."));
-		}
 
 		const packs: LinePack[] = [];
 		for (const event of lineEvents) {
@@ -131,9 +130,11 @@ class LineGW {
 		return new SuccessResult(packs);
 	};
 
-	#postPack = async (pack: LinePack): Promise<boolean> => {
-		if (pack.replyToken === undefined) return false;
-		await this.client
+	#postPack = async (pack: LinePack): Promise<Result<null>> => {
+		if (pack.replyToken === undefined)
+			return new FailureResult(new Error("Missing reply token."));
+
+		const response = await this.client
 			.replyMessage({
 				replyToken: pack.replyToken,
 				messages: [
@@ -144,18 +145,23 @@ class LineGW {
 				],
 			})
 			.catch((err) => {
-				console.error(err);
-				return false;
+				return err;
 			});
-		return true;
+		if (response instanceof Error) return new FailureResult(response);
+
+		return new SuccessResult(null);
 	};
-	postPacks = async (packs: LinePack[]): Promise<boolean> => {
+	postPacks = async (packs: LinePack[]): Promise<Result<null>> => {
+		const errs: Error[] = [];
 		await Promise.all(
 			packs.map(async (pack) => {
-				await this.#postPack(pack);
+				const response = await this.#postPack(pack);
+				if (!response.success) errs.push(response.error);
 			}),
 		);
-		return true;
+		if (errs.length !== 0)
+			return new FailureResult(new Error("Failed to post."));
+		return new SuccessResult(null);
 	};
 }
 
