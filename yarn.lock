@@ -1766,7 +1766,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:20.9.0, @types/node@npm:^20.0.0":
+"@types/node@npm:20.9.1":
+  version: 20.9.1
+  resolution: "@types/node@npm:20.9.1"
+  dependencies:
+    undici-types: "npm:~5.26.4"
+  checksum: b2b3f9ee31db63ccd3d48e5597d359c3385879679f37a749e473b47068aae181d0e280f39f153d75ce704640b3ec09d029aecd2a686e5658fb866254dc7e781b
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^20.0.0":
   version: 20.9.0
   resolution: "@types/node@npm:20.9.0"
   dependencies:
@@ -2193,6 +2202,13 @@ __metadata:
   version: 3.0.1
   resolution: "data-uri-to-buffer@npm:3.0.1"
   checksum: c59c3009686a78c071806b72f4810856ec28222f0f4e252aa495ec027ed9732298ceea99c50328cf59b151dd34cbc3ad6150bbb43e41fc56fa19f48c99e9fc30
+  languageName: node
+  linkType: hard
+
+"dayjs@npm:^1.11.10":
+  version: 1.11.10
+  resolution: "dayjs@npm:1.11.10"
+  checksum: 27e8f5bc01c0a76f36c656e62ab7f08c2e7b040b09e613cd4844abf03fb258e0350f0a83b02c887b84d771c1f11e092deda0beef8c6df2a1afbc3f6c1fade279
   languageName: node
   linkType: hard
 
@@ -2999,9 +3015,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"knip@npm:^2.41.2":
-  version: 2.41.2
-  resolution: "knip@npm:2.41.2"
+"knip@npm:^2.41.3":
+  version: 2.41.3
+  resolution: "knip@npm:2.41.3"
   dependencies:
     "@ericcornelissen/bash-parser": "npm:^0.5.2"
     "@npmcli/map-workspaces": "npm:^3.0.4"
@@ -3025,7 +3041,7 @@ __metadata:
     zod-validation-error: "npm:1.5.0"
   bin:
     knip: dist/cli.js
-  checksum: 529aaa86c52866d2c0d3e112c6d4ab8088ad5f688d985fc33696c201f37275786e6b8128318dadc842a9f05956b28e0f1e4d640faf930003c37ffa7f97607d42
+  checksum: 3ca2606fb22722a1f6e62e86ce29e446b3c8489ca8af8727ddba7590ff1f7784116eff0fef49569532b7133c780dd327bf7844a2a2de13e8bf37edfec8fafdb7
   languageName: node
   linkType: hard
 
@@ -3520,15 +3536,17 @@ __metadata:
     "@line/bot-sdk": "npm:^8.0.1"
     "@tsconfig/recommended": "npm:^1.0.3"
     "@types/aws-lambda": "npm:^8.10.126"
-    "@types/node": "npm:20.9.0"
+    "@types/node": "npm:20.9.1"
     aws-lambda: "npm:^1.0.7"
     console-log-colors: "npm:^0.4.0"
+    dayjs: "npm:^1.11.10"
     esbuild: "npm:^0.19.5"
     http-status-codes: "npm:^2.3.0"
-    knip: "npm:^2.41.2"
+    knip: "npm:^2.41.3"
     log-symbols: "npm:^6.0.0"
     pretty-bytes: "npm:^6.1.1"
     typescript: "npm:^5.2.2"
+    zod: "npm:^3.22.4"
   languageName: unknown
   linkType: soft
 
@@ -4150,7 +4168,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:3.22.4":
+"zod@npm:3.22.4, zod@npm:^3.22.4":
   version: 3.22.4
   resolution: "zod@npm:3.22.4"
   checksum: 73622ca36a916f785cf528fe612a884b3e0f183dbe6b33365a7d0fc92abdbedf7804c5e2bd8df0a278e1472106d46674281397a3dd800fa9031dc3429758c6ac

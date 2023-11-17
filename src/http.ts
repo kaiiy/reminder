@@ -13,3 +13,7 @@ export const InternalServerErrorResponse: ProxyResult = {
 	statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
 	body: "",
 };
+export const BadRequestResponse: ProxyResult = {
+	statusCode: StatusCodes.BAD_REQUEST,
+	body: "",
+};
