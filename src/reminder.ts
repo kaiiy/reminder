@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 const reminderSchema = z.object({
 	userId: z.string(),
 	message: z.string(),
-	notificationTime: z.date(),
+	notificationTime: z.string(),
 });
 const remindersSchema = z.array(reminderSchema);
 type Reminder = z.infer<typeof reminderSchema>;
@@ -13,14 +13,14 @@ type Reminder = z.infer<typeof reminderSchema>;
 interface ReminderPackArgs {
 	userId: string;
 	message: string;
-	notificationTime: Date;
+	notificationTime: string;
 	replyToken: string | undefined;
 }
 
 class ReminderPack {
 	private userId: string;
 	private message: string;
-	private notificationTime: Date;
+	private notificationTime: string;
 	private replyToken: string | undefined;
 
 	constructor(args: ReminderPackArgs) {
@@ -41,7 +41,7 @@ class ReminderPack {
 		return new LinePack({
 			userId: this.userId,
 			message: `${dayjs(this.notificationTime).format(
-				"YYYY/MM/DD HH:mm",
+				"YYYY-MM-DD HH:mm",
 			)}に連絡するね!`,
 			replyToken: this.replyToken,
 		});

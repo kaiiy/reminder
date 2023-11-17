@@ -26,6 +26,7 @@ export class S3GW {
 				}),
 			)
 			.catch((err) => {
+				console.error(err);
 				if (err instanceof Error) return err;
 				return new Error("Failed to get pack from S3.");
 			});
@@ -35,10 +36,14 @@ export class S3GW {
 			return new FailureResult(new Error("S3 response body is undefined."));
 		}
 
-		const buffStr = await buff.Body.transformToString().catch(() => "");
-		const parsedResult = remindersSchema.safeParse(buffStr);
+		const buffStr = await buff.Body.transformToString().catch((err) => {
+			console.error(err);
+			return "";
+		});
+		const parsedResult = remindersSchema.safeParse(JSON.parse(buffStr));
 		if (!parsedResult.success) {
-			return new FailureResult(new Error("Failed to parse reminders."));
+			console.error(parsedResult.error);
+			return new FailureResult(parsedResult.error);
 		}
 		const reminders: Reminder[] = parsedResult.data;
 		const packs: ReminderPack[] = reminders.map((reminder) => {

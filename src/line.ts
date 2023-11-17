@@ -57,8 +57,10 @@ class LinePack {
 		const _message = messageArr.slice(1).join(" ");
 
 		const notificationTimeResult = parseNotificationTime(_notificationTime);
-		if (!notificationTimeResult.success)
+		if (!notificationTimeResult.success) {
+			console.error(notificationTimeResult.error);
 			return new FailureResult(new Error("Failed to parse notification time."));
+		}
 
 		return new SuccessResult(
 			new ReminderPack({

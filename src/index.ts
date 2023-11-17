@@ -29,15 +29,24 @@ export const handler = async (
 	const s3GW = new S3GW("ap-northeast-1", BUCKET_NAME, "db.json");
 
 	// Authenticate GWs
-	if (!lineGW.authenticate(event)) return forbiddenResponse;
+	if (!lineGW.authenticate(event)) {
+		console.error("Failed to authenticate.");
+		return forbiddenResponse;
+	}
 
 	// Get packs
 	const linePacksResult = lineGW.getPacks(event);
-	if (!linePacksResult.success) return forbiddenResponse;
+	if (!linePacksResult.success) {
+		console.error(linePacksResult.error);
+		return OkResponse;
+	}
 	const linePacks = linePacksResult.value;
 
 	const reminderPacksResult = await s3GW.getPacks();
-	if (!reminderPacksResult.success) return InternalServerErrorResponse;
+	if (!reminderPacksResult.success) {
+		console.error(reminderPacksResult.error);
+		return OkResponse;
+	}
 	const currReminderPacks = reminderPacksResult.value;
 
 	// Merge reminder packs
@@ -48,14 +57,24 @@ export const handler = async (
 	for (const newReminderPackResult of newReminderPackResults) {
 		if (newReminderPackResult.success)
 			newReminderPacks.push(newReminderPackResult.value);
+		else console.error(newReminderPackResult.error);
 	}
 	const reminderPacks = [...currReminderPacks, ...newReminderPacks];
 
 	// Post reminder packs
 	const isSuccessToPostReminderPacks = await s3GW.postPacks(reminderPacks);
+	if (!isSuccessToPostReminderPacks) {
+		console.error("Failed to post reminder packs.");
+	}
 
 	// Post line packs
-	const isSuccessToPostLinePacks = await lineGW.postPacks(linePacks);
+	const replyLinePackResults = newReminderPacks.map((newReminderPack) =>
+		newReminderPack.toLinePack(),
+	);
+	const isSuccessToPostLinePacks = await lineGW.postPacks(replyLinePackResults);
+	if (!isSuccessToPostLinePacks) {
+		console.error("Failed to post line packs.");
+	}
 
 	return OkResponse;
 };

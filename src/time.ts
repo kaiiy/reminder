@@ -23,7 +23,7 @@ interface RelativeTime {
 // 	minute: number;
 // }
 
-const relativeToDate = (relativeTime: RelativeTime): Date => {
+const relativeToDate = (relativeTime: RelativeTime): string => {
 	const now = dayjs().add(9, "hour");
 	return now
 		.add(relativeTime.year, "year")
@@ -31,10 +31,11 @@ const relativeToDate = (relativeTime: RelativeTime): Date => {
 		.add(relativeTime.day, "day")
 		.add(relativeTime.hour, "hour")
 		.add(relativeTime.minute, "minute")
-		.toDate();
+		.toDate()
+		.toISOString();
 };
 
-const parseNotificationTime = (str: string): Result<Date> => {
+const parseNotificationTime = (str: string): Result<string> => {
 	const relativeTime: RelativeTime = {
 		year: 0,
 		month: 0,
@@ -46,20 +47,22 @@ const parseNotificationTime = (str: string): Result<Date> => {
 	let buff: number | undefined = undefined;
 
 	// relativeTime
-	if (str.endsWith("年後")) buff = parseNumber(str.slice(0, -str.length));
-	if (buff !== undefined) relativeTime.year = buff;
+	// if (str.endsWith("年後")) buff = parseNumber(str.slice(0, -str.length));
+	// if (buff !== undefined) relativeTime.year = buff;
 
-	if (str.endsWith("か月後")) buff = parseNumber(str.slice(0, -str.length));
-	if (buff !== undefined) relativeTime.month = buff;
+	// if (str.endsWith("か月後")) buff = parseNumber(str.slice(0, -str.length));
+	// if (buff !== undefined) relativeTime.month = buff;
 
-	if (str.endsWith("日後")) buff = parseNumber(str.slice(0, -str.length));
-	if (buff !== undefined) relativeTime.day = buff;
+	// if (str.endsWith("日後")) buff = parseNumber(str.slice(0, -str.length));
+	// if (buff !== undefined) relativeTime.day = buff;
 
-	if (str.endsWith("時間後")) buff = parseNumber(str.slice(0, -str.length));
+	if (str.endsWith("時間後")) {
+		buff = parseNumber(str.replace("時間後", ""));
+	}
 	if (buff !== undefined) relativeTime.hour = buff;
 
-	if (str.endsWith("分後")) buff = parseNumber(str.slice(0, -str.length));
-	if (buff !== undefined) relativeTime.minute = buff;
+	// if (str.endsWith("分後")) buff = parseNumber(str.slice(0, -str.length));
+	// if (buff !== undefined) relativeTime.minute = buff;
 
 	if (buff !== undefined)
 		return new SuccessResult(relativeToDate(relativeTime));
