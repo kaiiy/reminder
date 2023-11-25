@@ -1,5 +1,5 @@
 import { add, formatISO, formatISODuration } from "date-fns";
-import { parse, Duration } from "tinyduration";
+import { Duration, parse } from "tinyduration";
 import { FailureResult, Result, SuccessResult } from "./result";
 
 const parseIsoDuration = (str: string): Result<Duration> => {
