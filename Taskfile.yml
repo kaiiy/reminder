@@ -3,7 +3,7 @@ version: 3
 silent: true
 
 vars:
-  SERVICE_FUNCTION_NAME: "reminder"
+  FUNCTION_NAME: "reminder"
 
 tasks:
   _zip:
@@ -13,8 +13,9 @@ tasks:
   build:
     cmds:
       - mkdir -p dist/
-      - yarn build
+      - yarn build > /dev/null
       - task _zip
+      - du -sh ./dist/index.zip
   deploy:
     dir: dist/
     vars:
@@ -23,4 +24,4 @@ tasks:
     cmds:
       - task build
       - mkdir -p ../log/
-      - "aws lambda update-function-code --function-name {{ .SERVICE_FUNCTION_NAME }} --zip-file fileb://index.zip > ../log/{{ .LOG_NAME }}.json"
+      - "aws lambda update-function-code --function-name {{ .FUNCTION_NAME }} --zip-file fileb://index.zip > ../log/{{ .LOG_NAME }}.json"

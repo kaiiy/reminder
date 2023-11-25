@@ -2,7 +2,7 @@ import { build, BuildOptions } from "esbuild";
 import { statSync } from "node:fs";
 import { resolve } from "node:path";
 import { format } from "./pretty-bytes";
-import { cyan, green } from "console-log-colors";
+import { green } from "console-log-colors";
 
 interface Options extends BuildOptions {
 	outfile: string;
@@ -26,7 +26,7 @@ const options: Options = {
 const logSuccess = () => {
 	const outfile = options.outfile;
 	const distSize = statSync(resolve(outfile)).size;
-	console.log(outfile, "|", cyan(format(distSize)));
+	console.log(`${format(distSize)}    ${outfile}`);
 	console.log(green("\u{2714} Finished successfully!"));
 };
 
