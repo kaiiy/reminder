@@ -1,6 +1,6 @@
 import { build } from "esbuild";
-import fs from "fs";
-import path from "path";
+import { statSync } from "node:fs";
+import { resolve } from "node:path";
 import prettyBytes from "pretty-bytes";
 import { cyan, green } from "console-log-colors";
 import logSymbols from "log-symbols";
@@ -23,7 +23,7 @@ build(options)
 		process.exit(1);
 	})
 	.then(() => {
-		const distSize = fs.statSync(path.resolve(options.outfile)).size;
+		const distSize = statSync(resolve(options.outfile)).size;
 		console.log(
 			options.outfile,
 			"|",
