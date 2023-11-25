@@ -11,11 +11,17 @@ import { FailureResult, Result, SuccessResult } from "./result";
 import { parseNotificationTime } from "./time";
 
 const isWebhookEvents = (events: unknown): events is WebhookEvent[] => {
-	if (!Array.isArray(events)) return false;
+	if (!Array.isArray(events)) {
+		return false;
+	}
 
 	for (const event of events) {
-		if (!(event instanceof Object)) return false;
-		if (!("type" in event)) return false;
+		if (!(event instanceof Object)) {
+			return false;
+		}
+		if (!("type" in event)) {
+			return false;
+		}
 	}
 
 	return true;
@@ -29,8 +35,12 @@ type TextMessageEvent = {
 } & MessageEvent;
 
 const isTextMessageEvent = (event: WebhookEvent): event is TextMessageEvent => {
-	if (event.type !== "message" || event.message.type !== "text") return false;
-	if (!("userId" in event.source)) return false;
+	if (event.type !== "message" || event.message.type !== "text") {
+		return false;
+	}
+	if (!("userId" in event.source)) {
+		return false;
+	}
 	return true;
 };
 
@@ -57,8 +67,9 @@ class LinePack {
 		const _message = messageArr.slice(1).join(" ");
 
 		const notificationTimeResult = parseNotificationTime(_notificationTime);
-		if (!notificationTimeResult.success)
+		if (!notificationTimeResult.success) {
 			return new FailureResult(notificationTimeResult.error);
+		}
 
 		return new SuccessResult(
 			new ReminderPack({
@@ -71,7 +82,7 @@ class LinePack {
 	};
 }
 
-class LineGW {
+class LineGw {
 	private client: messagingApi.MessagingApiClient;
 	private readonly channelSecret: string;
 
@@ -83,41 +94,52 @@ class LineGW {
 	}
 
 	authenticate = (event: APIGatewayEvent): Result<null> => {
-		if (event.body === null)
+		if (event.body === null) {
 			return new FailureResult(new Error("Missing request body."));
+		}
 
 		const signature = event.headers["x-line-signature"];
-		if (signature === undefined)
+		if (signature === undefined) {
 			return new FailureResult(new Error("Missing request signature."));
+		}
 
 		const verified = validateSignature(
 			event.body,
 			this.channelSecret,
 			signature,
 		);
-		if (!verified)
+		if (!verified) {
 			return new FailureResult(new Error("Invalid request signature."));
+		}
 		return new SuccessResult(null);
 	};
 
 	getPacks = (event: APIGatewayEvent): Result<LinePack[]> => {
-		if (event.body === null)
+		if (event.body === null) {
 			return new FailureResult(new Error("Missing request body."));
+		}
 
 		let errBuff: Error | undefined = undefined;
 		const buff = JSON.parse(event.body).catch((err: unknown) => {
-			if (err instanceof Error) errBuff = err;
+			if (err instanceof Error) {
+				errBuff = err;
+			}
 			errBuff = new Error("Failed to parse request body.");
 		});
-		if (errBuff !== undefined) return new FailureResult(errBuff);
+		if (errBuff !== undefined) {
+			return new FailureResult(errBuff);
+		}
 
 		const lineEvents = buff.events;
-		if (!isWebhookEvents(lineEvents))
+		if (!isWebhookEvents(lineEvents)) {
 			return new FailureResult(new Error("Invalid request body."));
+		}
 
 		const packs: LinePack[] = [];
 		for (const event of lineEvents) {
-			if (!isTextMessageEvent(event)) continue;
+			if (!isTextMessageEvent(event)) {
+				continue;
+			}
 			packs.push(
 				new LinePack({
 					userId: event.source.userId,
@@ -131,8 +153,9 @@ class LineGW {
 	};
 
 	#postPack = async (pack: LinePack): Promise<Result<null>> => {
-		if (pack.replyToken === undefined)
+		if (pack.replyToken === undefined) {
 			return new FailureResult(new Error("Missing reply token."));
+		}
 
 		const response = await this.client
 			.replyMessage({
@@ -147,7 +170,9 @@ class LineGW {
 			.catch((err) => {
 				return err;
 			});
-		if (response instanceof Error) return new FailureResult(response);
+		if (response instanceof Error) {
+			return new FailureResult(response);
+		}
 
 		return new SuccessResult(null);
 	};
@@ -156,13 +181,16 @@ class LineGW {
 		await Promise.all(
 			packs.map(async (pack) => {
 				const response = await this.#postPack(pack);
-				if (!response.success) errs.push(response.error);
+				if (!response.success) {
+					errs.push(response.error);
+				}
 			}),
 		);
-		if (errs.length !== 0)
+		if (errs.length !== 0) {
 			return new FailureResult(new Error("Failed to post."));
+		}
 		return new SuccessResult(null);
 	};
 }
 
-export { LineGW, LinePack };
+export { LineGw, LinePack };

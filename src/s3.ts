@@ -6,7 +6,7 @@ import {
 import { Reminder, ReminderPack, remindersSchema } from "./reminder";
 import { FailureResult, Result, SuccessResult } from "./result";
 
-export class S3GW {
+export class S3Gw {
 	private client: S3Client;
 	private readonly bucket: string;
 	private readonly filename: string;
@@ -26,10 +26,14 @@ export class S3GW {
 				}),
 			)
 			.catch((err) => {
-				if (err instanceof Error) return err;
+				if (err instanceof Error) {
+					return err;
+				}
 				return new Error("Failed to get pack from S3.");
 			});
-		if (buff instanceof Error) return new FailureResult(buff);
+		if (buff instanceof Error) {
+			return new FailureResult(buff);
+		}
 
 		if (buff.Body === undefined) {
 			return new FailureResult(new Error("S3 response body is undefined."));
@@ -40,9 +44,13 @@ export class S3GW {
 			errBuff = err;
 			return "";
 		});
-		if (errBuff !== undefined) return new FailureResult(errBuff);
+		if (errBuff !== undefined) {
+			return new FailureResult(errBuff);
+		}
 		const parsedResult = remindersSchema.safeParse(JSON.parse(buffStr));
-		if (!parsedResult.success) return new FailureResult(parsedResult.error);
+		if (!parsedResult.success) {
+			return new FailureResult(parsedResult.error);
+		}
 
 		const reminders: Reminder[] = parsedResult.data;
 		const packs: ReminderPack[] = reminders.map((reminder) => {
@@ -58,8 +66,8 @@ export class S3GW {
 	};
 
 	postPacks = async (packs: ReminderPack[]): Promise<Result<null>> => {
-		const Reminders: Reminder[] = packs.map((pack) => pack.toObject());
-		const remindersStr = JSON.stringify(Reminders);
+		const reminders: Reminder[] = packs.map((pack) => pack.toObject());
+		const remindersStr = JSON.stringify(reminders);
 		const response = await this.client
 			.send(
 				new PutObjectCommand({
@@ -69,10 +77,14 @@ export class S3GW {
 				}),
 			)
 			.catch((err) => {
-				if (err instanceof Error) return err;
+				if (err instanceof Error) {
+					return err;
+				}
 				return new Error("Failed to update states to S3");
 			});
-		if (response instanceof Error) return new FailureResult(response);
+		if (response instanceof Error) {
+			return new FailureResult(response);
+		}
 		return new SuccessResult(null);
 	};
 }

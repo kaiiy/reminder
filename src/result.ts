@@ -17,3 +17,13 @@ export class FailureResult {
 		this.error = error;
 	}
 }
+
+export const flattenResult =
+	<Targs extends unknown[], Tout>(f: (...args: Targs) => Result<Tout>) =>
+	(...args: Targs) => {
+		const result = f(...args);
+		if (!result.success) {
+			throw result.error;
+		}
+		return result.value;
+	};

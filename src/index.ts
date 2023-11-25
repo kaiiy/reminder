@@ -4,9 +4,9 @@ import {
 	OkResponse,
 	forbiddenResponse,
 } from "./http";
-import { LineGW } from "./line";
+import { LineGw } from "./line";
 import { ReminderPack } from "./reminder";
-import { S3GW } from "./s3";
+import { S3Gw } from "./s3";
 
 const { ACCESS_TOKEN, CHANNEL_SECRET, BUCKET_NAME } = process.env;
 
@@ -25,25 +25,25 @@ export const handler = async (
 	}
 
 	// Create GWs
-	const lineGW = new LineGW(ACCESS_TOKEN, CHANNEL_SECRET);
-	const s3GW = new S3GW("ap-northeast-1", BUCKET_NAME, "db.json");
+	const lineGw = new LineGw(ACCESS_TOKEN, CHANNEL_SECRET);
+	const s3gw = new S3Gw("ap-northeast-1", BUCKET_NAME, "db.json");
 
 	// Authenticate GWs
-	const authResult = lineGW.authenticate(event);
+	const authResult = lineGw.authenticate(event);
 	if (!authResult.success) {
 		console.error(authResult.error);
 		return forbiddenResponse;
 	}
 
 	// Get packs
-	const linePacksResult = lineGW.getPacks(event);
+	const linePacksResult = lineGw.getPacks(event);
 	if (!linePacksResult.success) {
 		console.error(linePacksResult.error);
 		return OkResponse;
 	}
 	const linePacks = linePacksResult.value;
 
-	const reminderPacksResult = await s3GW.getPacks();
+	const reminderPacksResult = await s3gw.getPacks();
 	if (!reminderPacksResult.success) {
 		console.error(reminderPacksResult.error);
 		return OkResponse;
@@ -56,23 +56,28 @@ export const handler = async (
 	);
 	const newReminderPacks: ReminderPack[] = [];
 	for (const newReminderPackResult of newReminderPackResults) {
-		if (newReminderPackResult.success)
+		if (newReminderPackResult.success) {
 			newReminderPacks.push(newReminderPackResult.value);
-		else console.error(newReminderPackResult.error);
+		} else {
+			console.error(newReminderPackResult.error);
+		}
 	}
 	const reminderPacks = [...currReminderPacks, ...newReminderPacks];
 
 	// Post reminder packs
-	const postReminderPacksResult = await s3GW.postPacks(reminderPacks);
-	if (!postReminderPacksResult.success)
+	const postReminderPacksResult = await s3gw.postPacks(reminderPacks);
+	if (!postReminderPacksResult.success) {
 		console.error(postReminderPacksResult.error);
+	}
 
 	// Post line packs
 	const replyLinePackResults = newReminderPacks.map((newReminderPack) =>
 		newReminderPack.toLinePack(),
 	);
-	const postLinePacksResult = await lineGW.postPacks(replyLinePackResults);
-	if (!postLinePacksResult.success) console.error(postLinePacksResult.error);
+	const postLinePacksResult = await lineGw.postPacks(replyLinePackResults);
+	if (!postLinePacksResult.success) {
+		console.error(postLinePacksResult.error);
+	}
 
 	return OkResponse;
 };

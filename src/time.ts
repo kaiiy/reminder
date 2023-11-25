@@ -1,97 +1,61 @@
-import dayjs from "dayjs";
+import { add, formatISO, formatISODuration } from "date-fns";
+import { parse, Duration } from "tinyduration";
 import { FailureResult, Result, SuccessResult } from "./result";
 
-const parseNumber = (str: string) => {
-	const number = parseInt(str);
-	if (Number.isNaN(number)) return undefined;
-	return number;
+const parseIsoDuration = (str: string): Result<Duration> => {
+	try {
+		const duration = parse(str);
+		return new SuccessResult(duration);
+	} catch (_e) {
+		return new FailureResult(new Error("Failed to parse ISO duration."));
+	}
 };
 
-interface RelativeTime {
-	year: number;
-	month: number;
-	day: number;
-	hour: number;
-	minute: number;
-}
+const parseNumber = (str: string): Result<number> => {
+	const re = /^\d+$/;
+	if (!re.test(str)) {
+		return new FailureResult(new Error("Failed to parse number."));
+	}
+	const number = Number.parseInt(str, 10);
+	if (Number.isNaN(number)) {
+		return new FailureResult(new Error("Failed to parse number."));
+	}
+	return new SuccessResult(number);
+};
 
-// interface AbsoluteTime {
-// 	year: number;
-// 	month: number;
-// 	day: number;
-// 	hour: number;
-// 	minute: number;
-// }
+// We call "+1h", "+1d2h", etc. as "ptime"
+// TODO: Add support for day, week, month, year, etc. (Only hour is supported now.)
+const ptimeToIsoDuration = (ptime: string): Result<string> => {
+	const re = /^\+(\d)+h$/;
+	const match = ptime.match(re);
+	if (match !== null) {
+		const num = parseNumber(match[1]);
+		if (!num.success) {
+			return num;
+		}
 
-const relativeToDate = (relativeTime: RelativeTime): string => {
-	const now = dayjs().add(9, "hour");
-	return now
-		.add(relativeTime.year, "year")
-		.add(relativeTime.month, "month")
-		.add(relativeTime.day, "day")
-		.add(relativeTime.hour, "hour")
-		.add(relativeTime.minute, "minute")
-		.toDate()
-		.toISOString();
+		const isoDuration = formatISODuration({
+			hours: num.value,
+		});
+		return new SuccessResult(isoDuration);
+	}
+	return new FailureResult(new Error("Failed to parse ptime."));
 };
 
 const parseNotificationTime = (str: string): Result<string> => {
-	const relativeTime: RelativeTime = {
-		year: 0,
-		month: 0,
-		day: 0,
-		hour: 0,
-		minute: 0,
-	};
-
-	let buff: number | undefined = undefined;
-
-	// relativeTime
-	// if (str.endsWith("年後")) buff = parseNumber(str.slice(0, -str.length));
-	// if (buff !== undefined) relativeTime.year = buff;
-
-	// if (str.endsWith("か月後")) buff = parseNumber(str.slice(0, -str.length));
-	// if (buff !== undefined) relativeTime.month = buff;
-
-	// if (str.endsWith("日後")) buff = parseNumber(str.slice(0, -str.length));
-	// if (buff !== undefined) relativeTime.day = buff;
-
-	if (str.endsWith("時間後")) {
-		buff = parseNumber(str.replace("時間後", ""));
+	// Add hour
+	const isoDuration = ptimeToIsoDuration(str);
+	if (!isoDuration.success) {
+		return isoDuration;
 	}
-	if (buff !== undefined) relativeTime.hour = buff;
 
-	// if (str.endsWith("分後")) buff = parseNumber(str.slice(0, -str.length));
-	// if (buff !== undefined) relativeTime.minute = buff;
+	const duration = parseIsoDuration(isoDuration.value);
+	if (!duration.success) {
+		return duration;
+	}
 
-	if (buff !== undefined)
-		return new SuccessResult(relativeToDate(relativeTime));
-
-	// absoluteTime
-	// if (str.endsWith("年")) {
-	// 	buff = parseNumber(str.slice(0, -1));
-	// 	if (buff !== undefined)
-	// 		return new SuccessResult(dayjs().year(buff).add(9, "hour").toDate());
-	// } else if (str.endsWith("月")) {
-	// 	buff = parseNumber(str.slice(0, -1));
-	// 	if (buff !== undefined)
-	// 		return new SuccessResult(
-	// 			dayjs()
-	// 				.month(buff - 1)
-	// 				.add(9, "hour")
-	// 				.toDate(),
-	// 		);
-	// } else if (str.endsWith("日")) {
-	// 	buff = parseNumber(str.slice(0, -1));
-	// 	if (buff !== undefined)
-	// 		return new SuccessResult(dayjs().date(buff).add(9, "hour").toDate());
-	// } else if (str.endsWith("時")) {
-	// 	buff = parseNumber(str.slice(0, -1));
-	// 	if (buff !== undefined)
-	// 		return new SuccessResult(dayjs().hour(buff).add(9, "hour").toDate());
-	// }
-
-	return new FailureResult(new Error("Failed to parse notification time."));
+	const time = formatISO(add(new Date(), duration.value));
+	return new SuccessResult(time);
 };
 
-export { parseNotificationTime };
+export { parseNumber, parseNotificationTime, ptimeToIsoDuration };

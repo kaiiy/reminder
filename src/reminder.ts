@@ -1,4 +1,4 @@
-import dayjs from "dayjs";
+import { format, parseISO } from "date-fns";
 import { z } from "zod";
 import { LinePack } from "./line";
 
@@ -40,7 +40,8 @@ class ReminderPack {
 	toLinePack = (): LinePack => {
 		return new LinePack({
 			userId: this.userId,
-			message: `${dayjs(this.notificationTime).format(
+			message: `${format(
+				parseISO(this.notificationTime),
 				"YYYY-MM-DD HH:mm",
 			)}に連絡するね!`,
 			replyToken: this.replyToken,

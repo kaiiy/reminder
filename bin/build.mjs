@@ -8,6 +8,9 @@ import logSymbols from "log-symbols";
 /** @type {import('esbuild').BuildOptions} */
 const options = {
 	entryPoints: ["./src/index.ts"],
+	define: {
+		"process.env.NODE_ENV": '"production"',
+	},
 	minify: true,
 	bundle: true,
 	outfile: "./dist/index.js",

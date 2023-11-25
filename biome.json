@@ -1,0 +1,22 @@
+{
+	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+	"organizeImports": {
+		"enabled": true
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"all": true,
+			"suspicious": {
+				"noConsoleLog": "off"
+			},
+			"style": {
+				"useNamingConvention": "off"
+			},
+			"nursery": {
+				"noUselessLoneBlockStatements": "off"
+			}
+		},
+		"ignore": ["*.test.ts"]
+	}
+}
