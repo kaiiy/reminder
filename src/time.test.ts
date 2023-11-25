@@ -18,10 +18,11 @@ describe("parseNumber", () => {
 	});
 });
 
-describe("ptimeToISODuration", () => {
+describe("ptimeToIsoDuration", () => {
 	it("should return ISO duration", () => {
 		const wrapper = flattenResult(ptimeToIsoDuration);
 		expect(wrapper("+6h")).toBe("P0Y0M0DT6H0M0S");
+		expect(wrapper("+0h")).toBe("P0Y0M0DT0H0M0S");
 
 		expect(() => wrapper("+1d2h")).toThrow();
 		expect(() => wrapper("1h")).toThrow();

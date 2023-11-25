@@ -1,8 +1,8 @@
 export type Result<T> = SuccessResult<T> | FailureResult;
 
 export class SuccessResult<T> {
-	readonly success = true;
-	value: T;
+	public readonly success = true;
+	public readonly value: T;
 
 	constructor(value: T) {
 		this.value = value;
@@ -10,8 +10,8 @@ export class SuccessResult<T> {
 }
 
 export class FailureResult {
-	readonly success = false;
-	error: Error;
+	public readonly success = false;
+	public readonly error: Error;
 
 	constructor(error: Error) {
 		this.error = error;
